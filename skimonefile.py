@@ -42,7 +42,7 @@ if __name__=='__main__':
     t = ROOT.TChain(intreename)
     t.Add(infile)
     #aproc = ROOT.SkimEvents(t, outfile)
-    aproc = ROOT.BaseAnalyser(t, outfile)
+    aproc = ROOT.TprimeAnalyser(t, outfile)
     # setup JSONS for corrections
     #aproc.setupCorrections(config['goodjson'], config['pileupfname'], config['pileuptag']\
     #    , config['btvfname'], config['btvtype'], config['jercfname'], config['jerctag'], config['jercunctag'])

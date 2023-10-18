@@ -16,14 +16,20 @@ from importlib import import_module
 from argparse import ArgumentParser
 
 if __name__=='__main__':
-    parser = ArgumentParser(usage="%prog inputfile outputfile jobconfmod")
+    parser = ArgumentParser(usage="%prog inputfile outputfile jobconfmod cuts Region year")
     parser.add_argument("infile")
     parser.add_argument("outfile")
     parser.add_argument("jobconfmod")
+    parser.add_argument("cuts")
+    parser.add_argument("Region")
+    parser.add_argument("year")
     args = parser.parse_args()
     infile = args.infile
     outfile = args.outfile
     jobconfmod = args.jobconfmod
+    cuts = args.cuts
+    year = args.year
+    Region = args.Region
 
     # load job configuration python module and get bjects
     mod = import_module(jobconfmod)
@@ -45,18 +51,18 @@ if __name__=='__main__':
     print("Inside process one file..!!")
 
     #aproc = ROOT.FourtopAnalyzer(t, outfile)
-    aproc = ROOT.BaseAnalyser(t, outfile)
+    aproc = ROOT.TprimeAnalyser(t, outfile, cuts, Region, year)
     aproc.setParams(config['year'], config['runtype'],config['datatype'])
 
-  
+    
     #skipcorrections = True
     #if not skipcorrections:
     print("setup corrections ")
     aproc.setupCorrections(config['goodjson'], config['pileupfname'], config['pileuptag'], config['btvfname'], config['btvtype'], config['muon_roch_fname'], config['muon_fname'], config['muon_HLT_type'], config['muon_RECO_type'], config['muon_ID_type'], config['muon_ISO_type'], config['electron_fname'], config['electron_reco_type'], config['electron_id_type'], config['jercfname'], config['jerctag'], config['jercunctag'])    
     
+    
     sys.stdout.flush() #to force printout in right order 
     # prepare for processing
-    aproc.setupObjects()
-    aproc.setupAnalysis()
+    aproc.setupObjects(Region, year)
+    aproc.setupAnalysis(cuts, Region, year)
     aproc.run(saveallbranches, outtreename)
-    

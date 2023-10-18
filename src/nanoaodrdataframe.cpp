@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string>
 #include "NanoAODAnalyzerrdframe.h"
-#include "BaseAnalyser.h"
+#include "TprimeAnalyser.h"
 //#include "SkimEvents.h"
 #include "TChain.h"
 
@@ -23,15 +23,13 @@ int main(void) {
 	//c1.Add("testinputdata/data/JetHT_2017C_DA05CA1A-3265-EE47-84F9-10CB09D22BDA.root"); //data
 	//c1.Add("testinputdata/MC/2017/ttJets-2017MC-A258F579-5EC0-D840-95D7-4327595FC3DE.root"); // MC
 	c1.Add("testinputdata/MC/2018/BG/TTbarBKGMC.root"); // MC
-	BaseAnalyser nanoaodrdf(&c1, "testout.root");
+	TprimeAnalyser nanoaodrdf(&c1, "testout.root", "test_cut.txt", "Signal", "2018");
 
 	string goodjsonfname = "data/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt";
 	string pileupfname = "'data/LUM/2018_UL/puWeights.json";
 	string pileuptag = "Collisions18_UltraLegacy_goldenJSON";
 	string btvfname = "data/BTV/2018_UL/btagging.json";
 	string btvtype = "deepJet_shape";
-	//string electron_fname = "data/ELECTRON/2018_UL/electron_Z.json";
-	//string electrontype = "UL-Electron-ID-SF";
 	string jercfname = "data/JERC/UL18_jerc.json";
 	string jerctag = "Summer19UL18_V5_MC_L1L2L3Res_AK4PFchs";
 	string jercunctag = "Summer19UL18_V5_MC_Total_AK4PFchs";
@@ -49,9 +47,11 @@ int main(void) {
 
 	nanoaodrdf.setupCorrections(goodjsonfname, pileupfname, pileuptag, btvfname, btvtype, muon_roch_fname, muon_fname, muonHLTtype, muonRECOtype, muonIDtype, muonISOtype, electron_fname, electron_reco_type, electron_id_type, jercfname, jerctag, jercunctag);
 
-	nanoaodrdf.setupObjects();
-	nanoaodrdf.setupAnalysis();
+
+	nanoaodrdf.setupObjects("Signal", "2018");
+	nanoaodrdf.setupAnalysis("test_cut", "Signal", "2018");
 	nanoaodrdf.run(false, "outputTree");
 
 	return EXIT_SUCCESS;
 }
+

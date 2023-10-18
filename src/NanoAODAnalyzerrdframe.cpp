@@ -392,7 +392,7 @@ void NanoAODAnalyzerrdframe::setupCorrections(string goodjsonfname, string pufna
 	applyMuPtCorrection();
 }
 
-ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(RNode _rlm, std::vector<std::string> Jets_vars_names, int _case, std::string output_var="btag_SF_")
+ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(RNode _rlm, std::vector<std::string> Jets_vars_names, int _case, std::string output_var)
 {
 
   //case1 : fixedWP correction with mujets (here medium WP) # evaluate('systematic', 'working_point', 'flavor', 'abseta', 'pt')
@@ -469,7 +469,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateBTagSF(RNode _rlm, std::vector
 }
 
 
-ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateMuSF(RNode _rlm, std::vector<std::string> Muon_vars, std::string output_var="muon_SF_")
+ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateMuSF(RNode _rlm, std::vector<std::string> Muon_vars, std::string output_var)
 {
 
     //=====================================================Muon SF and eventweight============================================================// 
@@ -482,11 +482,13 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateMuSF(RNode _rlm, std::vector<s
       double muonHLT_w = 1.0;
 
       for (std::size_t i = 0; i < pts.size(); i++) {
-	//std::cout << "Muon abs_eta:" << std::fabs(etas[i]) << " pt: " << pts[i] << std::endl;
+	if(_year==2017 && (pts[i]<29.000001 || std::abs(etas[i])>2.3999999)) continue;
+	if(_year!=2017 && (pts[i]<26.000001 || std::abs(etas[i])>2.3999999)) continue;
+	std::cout << "IN ===:"<< muon_type<< ":===  Muon abs_eta:" << std::fabs(etas[i]) << " pt: " << pts[i] << std::endl;
 	double w = _correction_muon->at(muon_type)->evaluate({std::to_string(_year)+"_"+_runtype, std::fabs(etas[i]), pts[i], variation}); 
 	muonHLT_w *= w;
-	//std::cout << "Individual HLT weight (muon " << i << "): " << w << std::endl;
-	//std::cout << "Cumulative HLT weight after muon " << i << ": " << muonHLT_w << std::endl;
+	std::cout << "Individual ===:"<< muon_type<< ":=== weight (muon " << i << "): " << w << std::endl;
+	std::cout << "Cumulative ===:"<< muon_type<< ":=== weight after muon " << i << ": " << muonHLT_w << std::endl;
       }
       return muonHLT_w;
     };
@@ -553,7 +555,7 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateMuSF(RNode _rlm, std::vector<s
 }
 
 
-ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateEleSF(RNode _rlm, std::vector<std::string> Ele_vars, std::string output_var="ele_SF_")
+ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateEleSF(RNode _rlm, std::vector<std::string> Ele_vars, std::string output_var)
 {
 
     //auto cs = correction::CorrectionSet::from_file("electron.json.gz");
@@ -564,11 +566,11 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateEleSF(RNode _rlm, std::vector<
       double electronReco_w = 1.0;
 
       for (std::size_t i = 0; i < pts.size(); i++) {
-	
+	if(pts[i]<10.000001 || std::abs(etas[i])>2.5) continue;
 	double w = _correction_electron->at("UL-Electron-ID-SF")->evaluate({std::to_string(_year), variation, eletype, std::fabs(etas[i]), pts[i]}); 
 	electronReco_w *= w;
-	//std::cout << "Individual weight (electron " << i << "): " << w << std::endl;
-	//std::cout << "Cumulative weight after electron " << i << ": " << electronId_w << std::endl;
+	std::cout << "Individual ===:"<< eletype << ":=== weight (electron " << i << "): " << w << std::endl;
+	std::cout << "Cumulative ===:"<< eletype << ":=== weight after electron " << i << ": " << electronReco_w << std::endl;
       }
       return electronReco_w;
     };
@@ -616,7 +618,18 @@ ROOT::RDF::RNode NanoAODAnalyzerrdframe::calculateEleSF(RNode _rlm, std::vector<
     return _rlm;
 }
 
-
+ROOT::RDF::RNode NanoAODAnalyzerrdframe::applyPrefiringWeight(RNode _rlm, std::string output_var)
+{
+  
+    std::vector<std::string> variations = {"Nom", "Up", "Dn"};
+    std::vector<std::string> output_variations = {"central", "up", "down"};
+    for (int i =0; i<int(variations.size()); i++) {
+      std::string input_column_name = "L1PreFiringWeight_" + variations[i];
+      std::string output_column_name = output_var + output_variations[i];
+      _rlm = _rlm.Define(output_column_name, input_column_name);
+    }
+    return _rlm;
+}
 bool NanoAODAnalyzerrdframe::helper_1DHistCreator(std::string hname, std::string title, const int nbins, const double xlow, const double xhi, std::string rdfvar, std::string evWeight, RNode *anode)
 {
 	//cout << "1DHistCreator " << hname  << endl;
